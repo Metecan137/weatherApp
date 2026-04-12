@@ -5,6 +5,7 @@ import type { WeatherData, WeatherState } from "../../types";
 
 const initialState: WeatherState = {
     currentCity: "istanbul",
+    searchDropdown: false,
     activeDropdown: null,
     loading: false,
     data: null,
@@ -92,6 +93,9 @@ const weatherSlice = createSlice({
             state.units.temperature = "fahrenheit";
             state.units.windSpeed = "mph";
             state.units.precipitation = "inch";
+        },
+        toggleSearchDropdown: (state, action) => {
+            state.searchDropdown = action.payload
         }
     },
     extraReducers: (builder) => {
@@ -112,11 +116,12 @@ const weatherSlice = createSlice({
     }
 })
 
+export const searchDropdown = (state: RootState) => state.weather.searchDropdown
 export const city = (state: RootState) => state.weather.currentCity
 export const error = (state: RootState) => state.weather.error
 export const apiLoading = (state: RootState) => state.weather.loading
 export const weatherData = (state: RootState) => state.weather.data
 export const weatherUnits = (state: RootState) => state.weather.units
 export const activeDropdown = (state: RootState) => state.weather.activeDropdown
-export const { toggleDropdown, setUnit, switchImperial } = weatherSlice.actions
+export const { toggleDropdown, setUnit, switchImperial, toggleSearchDropdown } = weatherSlice.actions
 export default weatherSlice.reducer

@@ -1,14 +1,15 @@
 import search from "../assets/images/icon-search.svg"
 import { useForm, type SubmitHandler } from "react-hook-form"
 import { type Inputs } from "../types"
-import { fetchWeather, searchCities } from "../features/weatherSlice/weatherSlice"
-import { useDispatch } from "react-redux"
+import { fetchWeather, searchCities, searchDropdown, toggleSearchDropdown } from "../features/weatherSlice/weatherSlice"
+import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch } from "../features/store"
 import { useEffect } from "react"
 import { useState } from "react"
 
 function Search() {
     const {register, handleSubmit, watch, setValue} = useForm<Inputs>()
+    const dropdown = useSelector(searchDropdown)
     const searchValue = watch("search")
     const dispatch = useDispatch<AppDispatch>()
     const [searchResults, setSearchResults] = useState<any[]>([]); // Yerel state daha pratik olabilir
@@ -16,6 +17,7 @@ function Search() {
         dispatch(fetchWeather(data.search))
     }
 
+    console.log(dropdown)
     useEffect(() => {
         const timer = setTimeout(() => {
             if (searchValue && searchValue.length > 2) {
@@ -25,7 +27,7 @@ function Search() {
             } else {
                 setSearchResults([]);
             }
-        }, 300); // Debounce: Kullanıcı yazmayı bitirince istek atar
+        }, 200); // Debounce: Kullanıcı yazmayı bitirince istek atar
         return () => clearTimeout(timer);
     }, [searchValue, dispatch]);
 
@@ -44,12 +46,22 @@ function Search() {
                     <div className="flex flex-col md:flex-row w-full max-w-145 mt-12">
                         <div className="relative md:flex-4 w-full">
                             <img src={search} alt="search" className="absolute left-4 top-1/2 -translate-y-1/2 w-auto h-4 opacity-50 pointer-events-none" />
-                            <input {...register("search")} type="text" placeholder="Search for a place..." className="bg-neutral-800 rounded-lg w-full h-12 px-10 pr-4 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-neutral-900 transition-all" />
-                            {searchValue && 
-                            <div className="absolute w-full bg-neutral-800 rounded-lg mt-2 px-10 min-h-12 z-50 py-2">
+                            <input {...register("search")} type="text" placeholder="Search for a place..." className="bg-neutral-800 rounded-lg w-full h-12 px-10 pr-4 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 focus:ring-offset-neutral-900 transition-all" 
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                dispatch(toggleSearchDropdown(true))
+                                }}/>
+                            {dropdown && 
+                                <div className={`absolute w-full bg-neutral-800 rounded-lg mt-2 px-10 min-h-0 z-50`}>
                                 {
                                     searchResults?.map((item:any, index:any) => (
-                                        <div key={index} className="mt-2 text-neutral-200 font-semibold py-2" onClick={() => handleSelectCity(item)}>{`${item.name}, ${item.country}`}</div>
+                                        <div key={index} className="mt-2 text-neutral-200 font-semibold py-2" 
+                                        onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleSelectCity(item)
+                                                dispatch(toggleSearchDropdown(false))
+                                            }}>{`${item.name}, ${item.country}`}
+                                        </div>
                                     ))
                                 }
                             </div>

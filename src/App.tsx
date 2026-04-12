@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux'
 import './App.css'
 import Header from './components/Header'
-import { toggleDropdown } from './features/weatherSlice/weatherSlice'
+import { toggleDropdown, toggleSearchDropdown } from './features/weatherSlice/weatherSlice'
 import Search from './components/Search'
 import Dashboard from './components/Dashboard'
 
@@ -9,6 +9,7 @@ function App() {
   const dispatch = useDispatch()
   const handleGlobalClick = () => {
     dispatch(toggleDropdown(null))
+    dispatch(toggleSearchDropdown(false))
   }
 
   return (
