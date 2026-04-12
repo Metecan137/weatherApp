@@ -1,7 +1,7 @@
 import logo from "../assets/images/logo.svg"
 import iconUnits from "../assets/images/icon-units.svg"
 import dropdownIcon from "../assets/images/icon-dropdown.svg"
-import { activeDropdown, setUnit, toggleDropdown, weatherUnits } from "../features/weatherSlice/weatherSlice"
+import { activeDropdown, city, setUnit, switchImperial, toggleDropdown, weatherUnits } from "../features/weatherSlice/weatherSlice"
 import { useDispatch, useSelector } from "react-redux"
 import checkmark from "../assets/images/icon-checkmark.svg"
 import { useEffect } from "react"
@@ -12,10 +12,11 @@ function Header() {
     const dispatch = useDispatch<AppDispatch>()
     const dropdown = useSelector(activeDropdown)
     const units = useSelector(weatherUnits)
+    const currentCity = useSelector(city)
 
     useEffect(() => {
-        dispatch(fetchWeather("istanbul"));
-    }, [dispatch, units]);
+        dispatch(fetchWeather(currentCity))
+    }, [units]);
 
     return (
         <div className="flex justify-between w-full items-center">
@@ -31,9 +32,7 @@ function Header() {
                     <div className="absolute top-full right-0 w-48 p-1 bg-neutral-800 rounded-lg mt-2 z-50">
                         <button className="w-full text-left p-2 cursor-pointer rounded-md border border-transparent focus:border-neutral-400 focus:outline-none transition-all"
                             onClick={() => {
-                                dispatch(setUnit({ category: "temperature", value: "fahrenheit" }))
-                                dispatch(setUnit({ category: "windSpeed", value: "mph" }))
-                                dispatch(setUnit({ category: "precipitation", value: "inch" }))
+                                dispatch(switchImperial())
                             }}>
                             Switch to Imperial
                         </button>

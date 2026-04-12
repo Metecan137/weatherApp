@@ -27,6 +27,7 @@ export interface WeatherData {
 }
 
 export interface WeatherState {
+    currentCity: string
     activeDropdown: string | null
     loading: boolean
     data: WeatherData | null

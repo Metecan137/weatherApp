@@ -4,6 +4,7 @@ import axios from "axios";
 import type { WeatherData, WeatherState } from "../../types";
 
 const initialState: WeatherState = {
+    currentCity: "istanbul",
     activeDropdown: null,
     loading: false,
     data: null,
@@ -15,6 +16,17 @@ const initialState: WeatherState = {
     },
 };
 
+//sadece şehir arayan thunk dropdown için
+export const searchCities = createAsyncThunk(
+    "weather/searchCities",
+    async (cityName: string) => {
+        const response = await axios.get(`https://geocoding-api.open-meteo.com/v1/search`, {
+            params: { name: cityName, count: 5, language: "en", format: "json" }
+        });
+        return response.data.results || [];
+    }
+);
+
 export const fetchWeather = createAsyncThunk<WeatherData, string>("weather/fetchWeather", async (city: string, { rejectWithValue, getState }) => {
     try {
 
@@ -25,7 +37,7 @@ export const fetchWeather = createAsyncThunk<WeatherData, string>("weather/fetch
         const geoResponse = await axios.get(`https://geocoding-api.open-meteo.com/v1/search`, {
             params: {
                 name: city,
-                count: 1,
+                count: 5,
                 language: "en",
                 format: "json"
             }
@@ -76,6 +88,11 @@ const weatherSlice = createSlice({
             const { category, value } = action.payload;
             (state.units as any)[category] = value;
         },
+        switchImperial: (state) => {
+            state.units.temperature = "fahrenheit";
+            state.units.windSpeed = "mph";
+            state.units.precipitation = "inch";
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -86,6 +103,8 @@ const weatherSlice = createSlice({
             .addCase(fetchWeather.fulfilled, (state, action) => {
                 state.loading = false
                 state.data = action.payload
+                // thunk'a gönderilen ilk parametre (şehir adı) action.meta.arg içindedir
+                state.currentCity = action.meta.arg
             })
             .addCase(fetchWeather.rejected, (state, action) => {
                 state.error = action.payload as string
@@ -93,10 +112,11 @@ const weatherSlice = createSlice({
     }
 })
 
+export const city = (state: RootState) => state.weather.currentCity
 export const error = (state: RootState) => state.weather.error
 export const apiLoading = (state: RootState) => state.weather.loading
 export const weatherData = (state: RootState) => state.weather.data
 export const weatherUnits = (state: RootState) => state.weather.units
 export const activeDropdown = (state: RootState) => state.weather.activeDropdown
-export const { toggleDropdown, setUnit } = weatherSlice.actions
+export const { toggleDropdown, setUnit, switchImperial } = weatherSlice.actions
 export default weatherSlice.reducer
