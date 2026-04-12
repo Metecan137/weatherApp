@@ -147,7 +147,7 @@ function Dashboard() {
                 [&::-webkit-scrollbar-track]:bg-transparent 
                 [&::-webkit-scrollbar-thumb]:bg-neutral-700 
                 [&::-webkit-scrollbar-thumb]:rounded-full 
-                hover:[&::-webkit-scrollbar-thumb]:bg-neutral-600">
+                [&::-webkit-scrollbar-thumb:hover]:bg-neutral-600">
             {
               hourlyTimes.map((time, index) => {
                 const temp = hourlyTemps[index]
