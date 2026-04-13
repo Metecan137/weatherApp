@@ -28,27 +28,41 @@ export const searchCities = createAsyncThunk(
     }
 );
 
-export const fetchWeather = createAsyncThunk<WeatherData, string>("weather/fetchWeather", async (city: string, { rejectWithValue, getState }) => {
+export const fetchWeather = createAsyncThunk<WeatherData, { name: string; latitude: number; longitude: number; country: string; admin1?: string } | string>("weather/fetchWeather", async (cityInput, { rejectWithValue, getState }) => {
     try {
 
         const state = getState() as RootState
         const { temperature, windSpeed, precipitation } = state.weather.units
 
-        // 1. Geocoding: Şehir isminden koordinat bulma
-        const geoResponse = await axios.get(`https://geocoding-api.open-meteo.com/v1/search`, {
-            params: {
-                name: city,
-                count: 5,
-                language: "en",
-                format: "json"
+        // Bu değişkenler aşağıda iki farklı yoldan doldurulacak
+        let latitude, longitude, name, country, admin1
+
+        if(typeof cityInput === "string") {
+            // 1. Geocoding: Şehir isminden koordinat bulma direk searche yazıp en popüleri alıyoruz
+            const geoResponse = await axios.get(`https://geocoding-api.open-meteo.com/v1/search`, {
+                params: {
+                    name: cityInput,
+                    count: 1,
+                    language: "en",
+                    format: "json"
+                }
+            })
+
+            if (!geoResponse.data.results || geoResponse.data.results.length === 0) {
+                return rejectWithValue("City not found!")
             }
-        })
 
-        if (!geoResponse.data.results || geoResponse.data.results.length === 0) {
-            return rejectWithValue("City not found!")
+            ;({ latitude, longitude, name, country, admin1 } = geoResponse.data.results[0]) // let değerlerini destruction yaparak atadık
+
+        } else {
+
+            // YOL 2: Eğer obje geldiyse (dropdown'dan şehir seçildi)
+            // Koordinatlar zaten dropdown'dan geliyor, geocoding'e GEREK YOK!
+            // Madagaskar'ın Ankara'sını seçince onun koordinatları direkt kullanılıyor
+            // Bu sayede yanlış şehir gelme sorunu çözülüyor
+            ;({ latitude, longitude, name, country, admin1 } = cityInput)
+
         }
-
-        const { latitude, longitude, name, country, admin1 } = geoResponse.data.results[0]
 
         // 2. Weather Forecast: Koordinatlarla gerçek hava durumunu alma
         const weatherResponse = await axios.get(`https://api.open-meteo.com/v1/forecast`, {
@@ -108,7 +122,10 @@ const weatherSlice = createSlice({
                 state.loading = false
                 state.data = action.payload
                 // thunk'a gönderilen ilk parametre (şehir adı) action.meta.arg içindedir
-                state.currentCity = action.meta.arg
+                // action.meta.arg string mi obje mi kontrol ediyoruz
+                state.currentCity = typeof action.meta.arg === "string"
+                    ? action.meta.arg           // string geldiyse direkt kullan
+                    : action.meta.arg.name      // obje geldiyse sadece name'i al
             })
             .addCase(fetchWeather.rejected, (state, action) => {
                 state.error = action.payload as string

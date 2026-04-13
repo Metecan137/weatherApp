@@ -16,8 +16,7 @@ function Search() {
     const onSubmit: SubmitHandler<Inputs> = (data) => {
         dispatch(fetchWeather(data.search))
     }
-
-    console.log(dropdown)
+    
     useEffect(() => {
         const timer = setTimeout(() => {
             if (searchValue && searchValue.length > 2) {
@@ -33,7 +32,13 @@ function Search() {
 
     const handleSelectCity = (city: any) => {
         // Seçilen şehri fetch et ve input'u temizle/güncelle
-        dispatch(fetchWeather(city.name));
+        dispatch(fetchWeather({
+            name: city.name,           // Şehrin adı (örn: "Antananarivo")
+            latitude: city.latitude,   // Madagaskar Ankara'sının koordinatı
+            longitude: city.longitude, // Türkiye Ankara'sı değil, doğru konum!
+            country: city.country,     // Ülke kodu (örn: "MG")
+            admin1: city.admin1        // Eyalet/bölge bilgisi (opsiyonel)
+        }));
         setSearchResults([]);
         setValue("search", city.name);
     };

@@ -22,7 +22,6 @@ function Dashboard() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const errorMessage = useSelector(error)
-  console.log(data)
 
   const weatherConfig: { [key: number]: WeatherStatus } = {
     0: { label: "Clear Sky", icon: sunnyIcon },
